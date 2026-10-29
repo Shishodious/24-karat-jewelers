@@ -1,6 +1,6 @@
-# 24 Karat Jewelers
+# 24 Karat Mahima Jewellers
 
-The website for 24 Karat Jewelers, a Delhi family jeweller: bridal, polki, temple and everyday gold. The design language is borrowed from fashion retail: black type on white paper, small uppercase labels, gapless photo grids and a Bodoni wordmark that runs as a masthead over full-screen photography. The photos carry all the colour.
+The website for 24 Karat Mahima Jewellers, a Delhi family jeweller: bridal, polki, temple and everyday gold. The design language is borrowed from fashion retail: black type on white paper, small uppercase labels, gapless photo grids and a Bodoni wordmark that runs as a masthead over full-screen photography. The photos carry all the colour.
 
 Next.js 16 (App Router), React 19 and plain CSS. No UI or animation libraries.
 
@@ -14,7 +14,7 @@ npm run lint
 
 | Route | What it is |
 | --- | --- |
-| `/` | Full-screen pages that snap: one per collection, the Bridal Room, new in, categories, the house and today's gold rate, then the footer |
+| `/` | Full-screen pages that snap: the featured collections (`homeSlides` in `site.ts`, Polki first as the hero, then Nitya), the Bridal Room, new in, categories, the house and today's gold rate, then the footer |
 | `/shop`, `/shop/new`, `/shop/[category]` | Product grid with a sticky category bar, a 3-step grid density switch, filters (collection, purity, price) and sorting. Editorial photos sit inside the grid |
 | `/collections/[slug]` | Vivaah, Polki, Mandir and Nitya: a full-screen cover, an intro and the collection's pieces with lookbook photos |
 | `/product/[slug]` | Three columns on desktop (details and price breakup, photos, buy box), a swipeable gallery on phones. Purity switch reprices the piece live; bangles and rings ask for a size |

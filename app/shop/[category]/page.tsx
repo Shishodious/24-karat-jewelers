@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: PageProps<"/shop/[category]">
   if (!category) return {};
   return {
     title: category.label,
-    description: `${category.label} in hallmarked gold, polki and diamonds from 24 Karat Jewelers, with the price breakup on every piece.`,
+    description: `${category.label} in hallmarked gold, polki and diamonds from 24 Karat Mahima Jewellers, with the price breakup on every piece.`,
   };
 }
 

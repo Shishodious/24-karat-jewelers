@@ -3,20 +3,20 @@
 // from today's gold rate below (see app/lib/price.ts). Update `goldRate.per24k` every morning and every price follows.
 
 export const brand = {
-  name: "24 Karat Jewelers",
-  short: "24 Karat",
+  name: "24 Karat Mahima Jewellers",
+  short: "24 Karat Mahima",
   established: 1994,
   tagline: "Fine Indian jewellery, priced by the gram",
   description:
     "Bridal, polki, temple and everyday gold from a Delhi family jeweller since 1994. BIS hallmarked, priced at today's gold rate, with the full price breakup on every piece.",
-  url: "https://24karatjewelers.in",
-  email: "care@24karatjewelers.in",
+  url: "https://24karatmahima.in",
+  email: "care@24karatmahima.in",
   phone: "+91 98100 24024",
   phoneHref: "tel:+919810024024",
   // Country code + number, digits only. The bag, try-ons and appointments are sent here on WhatsApp.
   whatsappNumber: "919810024024",
   instagram: "https://instagram.com/",
-  instagramHandle: "@24karatjewelers",
+  instagramHandle: "@24karatmahima",
   socials: [
     { label: "Instagram", href: "https://instagram.com/" },
     { label: "Facebook", href: "https://facebook.com/" },
@@ -24,7 +24,7 @@ export const brand = {
     { label: "YouTube", href: "https://youtube.com/" },
     { label: "WhatsApp", href: "https://wa.me/919810024024" },
   ],
-  legal: "24 Karat Jewelers Pvt. Ltd. · GSTIN 07XXXXX0000X1ZX · BIS Licence HM/C-XXXXXXXXXX",
+  legal: "24 Karat Mahima Jewellers Pvt. Ltd. · GSTIN 07XXXXX0000X1ZX · BIS Licence HM/C-XXXXXXXXXX",
 };
 
 // Today's rate for 24K (999) gold, in rupees per gram. 22K, 18K and 14K follow from their fineness.
@@ -603,8 +603,12 @@ export type Slide = {
   images: string[]; // first is used on phones
 };
 
-export const slides: Slide[] = [
-  ...collections.map((c) => ({
+// Collections shown as full-screen slides on the home page, in order. The first one is the hero.
+export const homeSlides: CollectionId[] = ["polki", "nitya"];
+
+export const slides: Slide[] = homeSlides.map((id) => {
+  const c = collections.find((x) => x.id === id)!;
+  return {
     kicker: c.season,
     title: c.name,
     line: c.line,
@@ -612,8 +616,8 @@ export const slides: Slide[] = [
     cta: "Discover",
     tone: c.tone,
     images: c.hero,
-  })),
-];
+  };
+});
 
 export const bridalRoom = {
   kicker: "By appointment",
@@ -632,7 +636,7 @@ export const houseTeaser = {
 
 export const story = {
   title: "A house of gold since 1994",
-  lead: "24 Karat began as a single counter on Ajmal Khan Road, Karol Bagh. Three decades on it is still run by the family that opened it, and still weighs every piece in front of you.",
+  lead: "24 Karat Mahima began as a single counter on Ajmal Khan Road, Karol Bagh. Three decades on it is still run by the family that opened it, and still weighs every piece in front of you.",
   paragraphs: [
     "Our karigars work upstairs from the shop. Polki is sorted and set by hand, temple work is chased with the same tools used in Nagercoil a century ago, and every piece is hallmarked before it leaves the building.",
     "We have never believed in hidden making charges. Gold is priced at the morning's rate, making is a percentage you can see, and when you bring a piece back, we give you the full value of its gold.",
@@ -643,7 +647,7 @@ export const story = {
 export const promises = [
   { title: "Hallmarked", text: "Every piece carries a BIS hallmark and a six-digit HUID you can check on the BIS CARE app." },
   { title: "Priced by the gram", text: "Gold at today's rate, making as a percentage, stones at their value. Itemised on every piece." },
-  { title: "Lifetime exchange", text: "Bring back any 24 Karat piece and get 100% of its gold value at the day's rate." },
+  { title: "Lifetime exchange", text: "Bring back any 24 Karat Mahima piece and get 100% of its gold value at the day's rate." },
   { title: "Certified stones", text: "Diamonds over 0.30 ct come with an IGI or GIA certificate. Polki is graded and weighed." },
 ];
 
@@ -665,7 +669,7 @@ export const faqs = [
   },
   {
     q: "Do you exchange or buy back old gold?",
-    a: "We exchange or buy back any 24 Karat piece at 100% of its gold value on the day. Other hallmarked gold is tested in front of you and valued at the same rate.",
+    a: "We exchange or buy back any 24 Karat Mahima piece at 100% of its gold value on the day. Other hallmarked gold is tested in front of you and valued at the same rate.",
   },
   {
     q: "Can I try a piece before buying?",

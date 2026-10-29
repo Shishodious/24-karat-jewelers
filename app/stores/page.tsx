@@ -6,7 +6,7 @@ import { bridalRoom, stores } from "@/app/lib/site";
 
 export const metadata: Metadata = {
   title: "Stores & appointments",
-  description: "Visit 24 Karat Jewelers in Karol Bagh, South Extension and Gurugram, or book a private bridal consultation.",
+  description: "Visit 24 Karat Mahima Jewellers in Karol Bagh, South Extension and Gurugram, or book a private bridal consultation.",
 };
 
 export default function Stores() {

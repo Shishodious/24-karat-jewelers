@@ -5,7 +5,7 @@ import { shopEditorial } from "@/app/lib/site";
 
 export const metadata: Metadata = {
   title: "New in",
-  description: "The newest pieces from the 24 Karat workshop.",
+  description: "The newest pieces from the 24 Karat Mahima workshop.",
 };
 
 export default function NewIn() {
