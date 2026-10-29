@@ -8,7 +8,7 @@ import { useBag } from "./BagProvider";
 import Menu from "./Menu";
 import Wordmark from "./Wordmark";
 
-type Over = { tone: string; clear: boolean; big: boolean };
+type Over = { tone: string; clear: boolean; big: boolean; ready: boolean };
 
 // The header reads whatever sits under it: a [data-tone] section makes it transparent and sets the ink,
 // and [data-logo="big"] (the home slides) blows the wordmark up ("wide": only on wide screens). Anywhere else it is plain white.
@@ -16,7 +16,7 @@ export default function Header() {
   const pathname = usePathname();
   const { count } = useBag();
   const [menu, setMenu] = useState(false);
-  const [over, setOver] = useState<Over>({ tone: "light", clear: false, big: false });
+  const [over, setOver] = useState<Over>({ tone: "light", clear: false, big: false, ready: false });
 
   useEffect(() => {
     let frame = 0;
@@ -29,8 +29,8 @@ export default function Header() {
       }
       const logo = hit?.dataset.logo;
       const big = logo === "big" || (logo === "wide" && window.innerWidth >= 900);
-      const next = { tone: hit?.dataset.tone ?? "light", clear: !!hit, big };
-      setOver((o) => (o.tone === next.tone && o.clear === next.clear && o.big === next.big ? o : next));
+      const next = { tone: hit?.dataset.tone ?? "light", clear: !!hit, big, ready: true };
+      setOver((o) => (o.ready && o.tone === next.tone && o.clear === next.clear && o.big === next.big ? o : next));
     };
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(probe);
@@ -65,6 +65,7 @@ export default function Header() {
         data-tone={menu ? "light" : over.tone}
         data-clear={!menu && over.clear ? "" : undefined}
         data-big={!menu && over.big ? "" : undefined}
+        data-ready={over.ready ? "" : undefined}
       >
         <div className="hdr-left">
           <button

@@ -627,7 +627,8 @@ export const bridalRoom = {
 };
 
 export const houseTeaser = {
-  title: "Pure gold. Fair weight. Since 1994.",
+  // The home manifesto rolls through these one at a time; the last line is the one that stays.
+  manifesto: ["Pure gold.", "Fair weight.", "Hallmarked.", "Since 1994.", "Priced by the gram."],
   text: "Every piece is BIS hallmarked, weighed in front of you and priced at the morning's gold rate. The breakup is on every product page, so you know exactly what you are paying for.",
   image: "/images/editorial/jhumka-mono.jpg",
 };

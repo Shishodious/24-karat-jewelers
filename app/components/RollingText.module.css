@@ -1,0 +1,94 @@
+/* ROLLING TEXT — lines on the surface of a horizontal cylinder, rotated by
+ * scroll. Everything tunable is a custom property on .drum, so a consumer
+ * retunes by overriding tokens rather than out-specifying these rules:
+ *
+ *   <RollingText style={{ "--rt-step": "34deg", "--rt-radius": "1.7em" }} … />
+ */
+.drum {
+  /* GEOMETRY — these two are a matched pair, not free knobs. For faces one em
+     tall to sit edge to edge on the cylinder, radius ≈ 1em / step-in-radians:
+       22deg → 2.60em   ·   28deg → 2.05em   ·   34deg → 1.69em   ·   40deg → 1.43em
+     Change one and re-derive the other, or the faces overlap or gap. A wider
+     step means a shallower drum showing fewer lines at once. */
+  --rt-step: 28deg;
+  --rt-radius: 2.05em;
+  /* How much of the cylinder is visible. The full arc is 2 × radius; showing
+     slightly less than that is what puts faces under the fade at the lip. */
+  --rt-height: 3.4em;
+  /* Type. Any face too wide for the drum scales the WHOLE drum down (the
+     component measures it), so this is a ceiling, not a promise. */
+  --rt-size: clamp(30px, 7.4vw, 200px);
+  --rt-weight: 900;
+  --rt-tracking: -0.05em;
+  /* Where the turning faces dissolve, top and bottom. */
+  --rt-fade: 20%;
+
+  position: relative;
+  height: var(--rt-height);
+  font-size: var(--rt-size);
+  font-weight: var(--rt-weight);
+  letter-spacing: var(--rt-tracking);
+  line-height: 1;
+  /* Clipped + faded at the lip, so faces turning away dissolve instead of
+     ending on a hard edge. Deliberately NOT the element that owns the
+     perspective below: overflow and mask are grouping properties, and an
+     engine is entitled to flatten the 3D context of an element carrying them.
+     Camera and clip stay separate so the cylinder cannot collapse to flat
+     stacked text — which is how this effect usually dies. */
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    180deg, transparent 0%, #000 var(--rt-fade),
+    #000 calc(100% - var(--rt-fade)), transparent 100%);
+  mask-image: linear-gradient(
+    180deg, transparent 0%, #000 var(--rt-fade),
+    #000 calc(100% - var(--rt-fade)), transparent 100%);
+}
+/* The camera. Its perspective origin — the drum's centre — is the axis the
+   faces orbit. Distance is set off the radius so the foreshortening stays put
+   when the drum is retuned. */
+.scene {
+  position: absolute;
+  inset: 0;
+  perspective: calc(var(--rt-radius) * 4);
+}
+.line {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* A wrapped line would sit on two different points of the cylinder and break
+     the illusion. Faces stay on one line; the component sizes the type to fit
+     rather than letting it wrap. */
+  white-space: nowrap;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+  /* Read right to left: push the face out to the cylinder's surface, swing it
+     around the axis, then pull the whole orbit back one radius — that last step
+     happens in the camera's frame, so the face at 0° lands at z = 0 and
+     therefore at its true size, unmagnified by the perspective.
+
+     This resting state (drum parked on face 0, --i being the face index) is
+     what the first paint shows, before the component takes over. Without it
+     the frame before hydration is a stack of overlapping lines. */
+  transform: translateZ(calc(var(--rt-radius) * -1))
+    rotateX(calc(var(--i, 0) * var(--rt-step) * -1)) translateZ(var(--rt-radius));
+  /* Approximate mirror of the JS ramp at 28°: k = i·step/90, opacity 1 − 1.15k,
+     blur 5k. Retuning --rt-step drifts this by a hair for one frame; harmless. */
+  opacity: calc(1 - var(--i, 0) * 0.358);
+  filter: blur(calc(var(--i, 0) * 1.56px));
+}
+/* Exists to be measured: layout width of the text, immune to the 3D transforms
+   on its ancestors and to the centring of the face. `flex: 0 0 auto` is load
+   bearing — a shrinkable flex item would be squeezed to the drum's width and
+   report that instead of the natural width the fit pass needs. */
+.lineInner {
+  flex: 0 0 auto;
+}
+/* A face may carry a real heading — it should look like the rest of the drum
+   rather than like whatever the page styles h2 as. */
+.line :where(h1, h2, h3, h4, p) {
+  margin: 0;
+  font: inherit;
+  letter-spacing: inherit;
+}

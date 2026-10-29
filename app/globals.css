@@ -49,7 +49,6 @@
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; scroll-padding-top: calc(var(--hdr) + 16px); }
 html.locked { overflow: hidden; }
-html:has(.home) { scroll-snap-type: y mandatory; }
 body {
   margin: 0;
   background: var(--paper);
@@ -175,10 +174,16 @@ img[data-nimg="fill"] { object-fit: cover; }
 .hdr-left { display: flex; align-items: center; gap: clamp(16px, 2vw, 28px); }
 .hdr-logo { display: block; transform-origin: 0 0; transition: transform 0.8s var(--ease); }
 .hdr[data-big] .hdr-logo { transform: scale(var(--logo-big)); }
+/* Until the header has looked under itself (first paint, before hydration) the home's opening page sets it,
+   so it never flashes as a white bar over the hero. */
+.hdr:not([data-ready]), .hdr:not([data-ready]) .hdr-logo { transition: none; }
+html:has(.home .stack > [data-tone="dark"]:first-child) .hdr:not([data-ready]) { background: transparent; color: var(--paper); }
+html:has(.home .stack > [data-logo="big"]:first-child) .hdr:not([data-ready]) .hdr-logo { transform: scale(var(--logo-big)); }
 /* On phones the big wordmark drops under the nav row and runs the width of the screen, like a masthead. */
 @media (max-width: 767px) {
   .hdr .wordmark { font-size: 26px; }
-  .hdr[data-big] .hdr-logo { transform: translate(calc(-26px - clamp(16px, 2vw, 28px)), 46px) scale(var(--logo-big)); }
+  .hdr[data-big] .hdr-logo,
+  html:has(.home .stack > [data-logo="big"]:first-child) .hdr:not([data-ready]) .hdr-logo { transform: translate(calc(-26px - clamp(16px, 2vw, 28px)), 46px) scale(var(--logo-big)); }
 }
 .hdr-right { display: flex; align-items: center; gap: clamp(16px, 2.2vw, 32px); font-size: var(--t-xs); font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
 .hdr-search {
@@ -269,8 +274,15 @@ img[data-nimg="fill"] { object-fit: cover; }
 .rate tbody th { font-size: var(--t-m); }
 .rate-note { margin-top: 10px; font-size: var(--t-xs); color: var(--ink-2); }
 
-/* ---------- home: snap panels ---------- */
-.panel { position: relative; min-height: 100svh; scroll-snap-align: start; scroll-snap-stop: always; }
+/* ---------- home ---------- */
+.panel { position: relative; min-height: 100svh; }
+
+/* The opening pages stack: each is sticky, so the next slides up over it while it sinks back and darkens.
+   Stack.tsx writes --covered (0 to 1) on the page being covered. */
+.stack > .panel { position: sticky; top: 0; }
+.stack > .panel > :not(.veil) { transform: scale(calc(1 - var(--covered, 0) * 0.06)); transform-origin: 50% 35%; }
+.veil { position: absolute; inset: 0; z-index: 3; background: #000; opacity: calc(var(--covered, 0) * 0.6); pointer-events: none; }
+
 .slide { height: 100svh; overflow: hidden; background: #0d0d0d; color: var(--paper); }
 .slide[data-tone="light"] { background: var(--paper); color: var(--ink); }
 
@@ -319,10 +331,27 @@ img[data-nimg="fill"] { object-fit: cover; }
     .slide, .room { view-timeline: --page; }
     .slide-media img, .cover .slide-media img { animation: settle linear both; animation-timeline: view(); animation-range: entry 0% cover 50%; }
     .slide-center, .room-text > * { animation: rise linear both; animation-timeline: --page; animation-range: entry 45% entry 100%; }
+    .split-media img { animation: drift linear both; animation-timeline: view(); animation-range: cover; }
   }
 }
 @keyframes settle { from { transform: scale(1.14); } to { transform: scale(1); } }
 @keyframes rise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+@keyframes drift { from { transform: scale(1.12) translateY(-4%); } to { transform: scale(1.12) translateY(4%); } }
+
+/* The hero opens with its photos wiping up one after another, then the caption. Without the intro (a repeat
+   visit this session, or reduced motion) it starts at once; behind the intro it holds until the wordmark takes off. */
+.home { --intro: 0.1s; }
+html:not([data-intro="skip"]) .home { --intro: 0.35s; }
+html:not([data-intro="skip"]):has(.opening[data-phase="intro"]) .home .slide:first-child :is(figure, .slide-center, .slide-kicker, .slide-count) { animation-play-state: paused; }
+@keyframes unveil { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes lift { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+.home .slide:first-child figure { animation: unveil 1.1s var(--ease-in-out) both; animation-delay: calc(var(--intro) + var(--k, 0) * 0.13s); }
+.home .slide:first-child :is(.slide-center, .slide-kicker, .slide-count) {
+  animation: lift 0.9s var(--ease) both;
+  animation-timeline: auto;
+  animation-range: normal;
+  animation-delay: calc(var(--intro) + 0.5s);
+}
 
 /* bridal room: words on paper beside two photos */
 .room { height: 100svh; display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); background: var(--paper); }
@@ -346,10 +375,35 @@ img[data-nimg="fill"] { object-fit: cover; }
 
 .panel-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding: 0 var(--gut) clamp(16px, 3svh, 28px); }
 
-/* new in: one horizontal rail, gapless */
-.rail-panel { display: flex; flex-direction: column; justify-content: center; padding-top: var(--hdr); }
+/* ticker: the morning's rates and the promises, on the one black band */
+.ticker { overflow: hidden; background: var(--ink); color: var(--paper); }
+.ticker-track { display: flex; width: max-content; animation: ticker 52s linear infinite; }
+.ticker:hover .ticker-track { animation-play-state: paused; }
+.ticker ul { display: flex; flex-shrink: 0; }
+.ticker li {
+  display: flex;
+  align-items: center;
+  padding: 15px 0;
+  font-size: var(--t-xs);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+/* a cut stone between items */
+.ticker li::after { content: ""; width: 5px; height: 5px; margin: 0 32px; background: currentColor; transform: rotate(45deg); opacity: 0.55; }
+@keyframes ticker { to { transform: translateX(-50%); } }
+
+/* home sections below the stack */
+.block { padding: clamp(80px, 13vh, 150px) 0 0; }
+.block-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: 0 var(--gut) clamp(18px, 3vh, 32px); }
+.block-kicker { margin-bottom: 14px; color: var(--ink-2); }
+.block-head .block-kicker:only-child, .block-head .block-kicker:has(+ .sr-only) { margin-bottom: 0; }
+
+/* new in: a gapless shelf with a hairline progress bar and arrows */
 .rail {
-  --w: min(24vw, calc((100svh - var(--hdr) - 230px) * 0.75));
+  --w: clamp(240px, 24vw, 460px);
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: var(--w);
@@ -360,42 +414,100 @@ img[data-nimg="fill"] { object-fit: cover; }
 }
 .rail::-webkit-scrollbar { display: none; }
 .rail .card { scroll-snap-align: start; }
+.rail:focus-visible { outline-offset: -1px; }
 @media (max-width: 767px) { .rail { --w: 64vw; } }
+.shelf-foot { display: flex; align-items: center; gap: 24px; padding: 16px var(--gut) 0; }
+.shelf-bar { position: relative; flex: 1; height: 1px; background: var(--hair); }
+.shelf-bar i { position: absolute; top: -0.5px; height: 2px; background: var(--ink); transition: left 0.25s var(--ease), width 0.25s var(--ease); }
+.shelf-nav { display: flex; gap: 6px; }
+.shelf-nav button { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--ink); transition: background-color 0.25s, color 0.25s, opacity 0.25s; }
+.shelf-nav button:disabled { opacity: 0.2; cursor: default; }
+.flip { display: grid; transform: rotate(180deg); }
+@media (hover: hover) { .shelf-nav button:not(:disabled):hover { background: var(--ink); color: var(--paper); } }
+@media (hover: none) { .shelf-nav { display: none; } }
 
-/* categories: six strips that widen on hover */
-.strips-panel { display: flex; flex-direction: column; justify-content: center; padding-top: var(--hdr); }
-.strips { display: flex; height: calc(100svh - var(--hdr) - 170px); min-height: 360px; }
+/* categories: six strips that widen under the pointer, over one giant word that rolls to the hovered name */
+.strips { display: flex; height: clamp(380px, 62svh, 720px); }
 .strips li { flex: 1; min-width: 0; transition: flex-grow 0.8s var(--ease); }
 .strip { display: grid; grid-template-rows: 1fr auto; height: 100%; }
 .strip-media { position: relative; overflow: hidden; }
-.strip-media img { transition: transform 1.2s var(--ease); }
+.strip-media img { transition: transform 1.2s var(--ease), filter 0.6s var(--ease); }
 .strip-label { display: flex; gap: 10px; padding: 10px 8px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .strip-label span { color: var(--ink-3); }
 @media (hover: hover) and (min-width: 900px) {
-  .strips:hover li { flex-grow: 0.75; }
-  .strips li:hover { flex-grow: 2.4; }
+  .strips:hover li { flex-grow: 0.7; }
+  .strips li:hover { flex-grow: 2.6; }
   .strips li:hover img { transform: scale(1.04); }
+  .strips:hover li:not(:hover) img { filter: grayscale(1) contrast(1.05); }
 }
 @media (max-width: 899px) {
-  .strips { display: grid; grid-template-columns: repeat(3, 1fr); height: auto; min-height: 0; }
+  .strips { display: grid; grid-template-columns: repeat(3, 1fr); height: auto; }
   .strip-media { aspect-ratio: 3 / 4; }
 }
 @media (max-width: 599px) { .strips { grid-template-columns: repeat(2, 1fr); } }
 
-/* the house, in brief */
-.house-panel { display: grid; grid-template-columns: 1fr 1fr; background: var(--paper); }
-.house-panel-media { position: relative; overflow: hidden; }
-.house-panel-text { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 22px; padding: calc(var(--hdr) + 24px) clamp(20px, 5vw, 80px) 40px; }
-.house-panel-title { font-family: var(--font-display), serif; font-weight: 400; font-size: clamp(2.4rem, 4.4vw, 4.6rem); line-height: 0.9; letter-spacing: -0.035em; text-transform: uppercase; text-wrap: balance; }
-.house-panel-copy { max-width: 48ch; color: var(--ink-2); }
+.roll {
+  position: relative;
+  height: 0.84em;
+  margin: clamp(20px, 3.5vh, 36px) var(--gut) 0;
+  overflow: hidden;
+  font-family: var(--font-display), serif;
+  font-size: calc((100vw - 2 * var(--gut)) / 9.4);
+  line-height: 0.84;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.roll-line { position: absolute; inset: 0 auto auto 0; display: flex; }
+.roll-ch { display: inline-block; animation: ch-in 0.75s var(--ease) both; animation-delay: calc(var(--i) * 26ms); }
+.roll-line[data-out] .roll-ch { animation: ch-out 0.45s var(--ease-in-out) forwards; animation-delay: calc(var(--i) * 14ms); }
+@keyframes ch-in { from { transform: translateY(108%); } to { transform: none; } }
+@keyframes ch-out { from { transform: none; } to { transform: translateY(-108%); } }
+@media (hover: none), (max-width: 899px) { .roll { display: none; } }
+
+/* manifesto: a 3D drum of short claims that rolls as you scroll and lands on the last one */
+.manifesto { display: grid; justify-items: center; gap: clamp(20px, 4vh, 40px); padding: clamp(110px, 20vh, 220px) var(--gut) clamp(80px, 14vh, 160px); text-align: center; }
+.manifesto .block-kicker { margin: 0; }
+.manifesto-drum { width: 100%; font-family: var(--font-display), serif; text-transform: uppercase; }
+
+/* the gold rate, beside the black-and-white workshop photo */
+.split { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--ink); }
+.split-media { position: relative; min-height: clamp(420px, 80svh, 860px); overflow: hidden; }
+.split-text { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 26px; padding: clamp(40px, 6vw, 96px) clamp(20px, 5vw, 80px); }
+.split-copy { max-width: 46ch; font-size: var(--t-l); color: var(--ink-2); }
 @media (max-width: 899px) {
-  .house-panel { grid-template-columns: 1fr; }
-  .house-panel-media { height: 42svh; }
-  .house-panel-text { padding-top: 32px; }
+  .split { grid-template-columns: 1fr; }
+  .split-media { min-height: 0; aspect-ratio: 4 / 3; }
 }
 
-.foot-panel { display: flex; flex-direction: column; justify-content: flex-end; padding-top: var(--hdr); }
-.foot-panel .ft { margin-top: 0; }
+/* intro: once per session, the wordmark on white with a gold glint, then it flies into the masthead (Intro.tsx) */
+.opening {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: none;
+  place-content: center;
+  justify-items: center;
+  gap: 24px;
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+}
+html:not([data-intro]) .opening:is([data-phase="intro"], [data-phase="fly"]) { display: grid; animation: intro-failsafe 0.4s 8s forwards; }
+@keyframes intro-failsafe { to { opacity: 0; visibility: hidden; } }
+.opening-mark { position: relative; display: inline-flex; transform-origin: 0 0; }
+.opening .wordmark { font-size: clamp(64px, 12vw, 190px); }
+.opening-glint { position: absolute; inset: 0; pointer-events: none; }
+.opening-glint .wordmark {
+  color: transparent;
+  background: linear-gradient(105deg, transparent 38%, #a87a2a 45%, #f3d58a 50%, #a87a2a 55%, transparent 62%) 130% 0 / 300% 100% no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.opening-line { color: var(--ink-2); }
+/* the real masthead waits under the intro and takes over the moment the wordmark lands */
+html:not([data-intro="skip"]):has(.opening:is([data-phase="intro"], [data-phase="fly"])) :is(.hdr-logo, .hdr-right, .burger) { opacity: 0; }
+.hdr-right, .burger { transition: opacity 0.6s var(--ease); }
 
 /* ---------- product card ---------- */
 .card { position: relative; min-width: 0; }
@@ -826,6 +938,5 @@ img[data-nimg="fill"] { object-fit: cover; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
-  html:has(.home) { scroll-snap-type: none; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }

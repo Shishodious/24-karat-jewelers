@@ -12,7 +12,7 @@ export default function Slide({ slide, index, total }: { slide: SlideData; index
     <section className="panel slide" data-tone={slide.tone} data-logo="big" aria-label={`${slide.title}, ${slide.line}`}>
       <div className="slide-media" style={vars({ "--n": slide.images.length })}>
         {slide.images.map((src, i) => (
-          <figure key={src}>
+          <figure key={src} style={vars({ "--k": i })}>
             <Image
               src={src}
               alt=""
@@ -25,6 +25,7 @@ export default function Slide({ slide, index, total }: { slide: SlideData; index
           </figure>
         ))}
       </div>
+      <span className="veil" aria-hidden="true" />
       <div className="slide-caption">
         <p className="caps slide-kicker">{slide.kicker}</p>
         <div className="slide-center">

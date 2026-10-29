@@ -14,7 +14,7 @@ npm run lint
 
 | Route | What it is |
 | --- | --- |
-| `/` | Full-screen pages that snap: the featured collections (`homeSlides` in `site.ts`, Polki first as the hero, then Nitya), the Bridal Room, new in, categories, the house and today's gold rate, then the footer |
+| `/` | A once-per-session intro, then full-screen pages that stack as you scroll: the featured collections (`homeSlides` in `site.ts`, Polki first as the hero, then Nitya) and the Bridal Room. Below them: a gold-rate ticker, the new-in shelf, the category index, the manifesto drum (`houseTeaser.manifesto`), today's gold rate and the footer |
 | `/shop`, `/shop/new`, `/shop/[category]` | Product grid with a sticky category bar, a 3-step grid density switch, filters (collection, purity, price) and sorting. Editorial photos sit inside the grid |
 | `/collections/[slug]` | Vivaah, Polki, Mandir and Nitya: a full-screen cover, an intro and the collection's pieces with lookbook photos |
 | `/product/[slug]` | Three columns on desktop (details and price breakup, photos, buy box), a swipeable gallery on phones. Purity switch reprices the piece live; bangles and rings ask for a size |
@@ -46,5 +46,8 @@ npm run lint
 - **Menu** ([`Menu.tsx`](app/components/Menu.tsx)) is a full-screen index in Bodoni with a photo preview that follows the pointer.
 - **Bag, favourites and grid density** are kept in `localStorage` through a small store ([`lib/store.ts`](app/lib/store.ts)) read with `useSyncExternalStore`, so they sync across tabs and never cause hydration mismatches.
 - **Product photos morph** from the grid into the product page with React's `<ViewTransition>`. Every product page is prerendered (`generateStaticParams`), so the morph has its pair ready on click.
-- **Motion** is CSS only: scroll-driven `view()` timelines settle each home photo as it arrives, strips widen on hover, and everything switches off under `prefers-reduced-motion`.
+- **Home intro** ([`Intro.tsx`](app/components/Intro.tsx)) plays once per browser session: the wordmark settles on white, a gold glint crosses it, and it flies into the masthead while the hero's photos wipe in. A click or key press skips it. An inline script in `<head>` ([`lib/intro.ts`](app/lib/intro.ts)) marks `<html data-intro="skip">` before first paint for repeat visits and reduced motion, so the overlay never flashes.
+- **Stacked pages** ([`Stack.tsx`](app/components/Stack.tsx)): the opening pages are sticky; each slides over the last, which sinks back and darkens (`--covered`).
+- **Category index** ([`CategoryIndex.tsx`](app/components/CategoryIndex.tsx)): strips widen under the pointer while a giant word below rolls, letter by letter, to the hovered name. **Manifesto** ([`RollingText.tsx`](app/components/RollingText.tsx)): a 3D drum of short lines that turns as you scroll.
+- **Motion** is otherwise CSS: scroll-driven `view()` timelines settle each home photo as it arrives, and everything switches off under `prefers-reduced-motion`.
 - **SEO**: per-page titles and descriptions, an Open Graph image, and `Product` JSON-LD on every product page.

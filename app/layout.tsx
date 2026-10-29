@@ -3,6 +3,8 @@ import { Bodoni_Moda, Inter_Tight } from "next/font/google";
 import AddedToast from "./components/AddedToast";
 import BagProvider from "./components/BagProvider";
 import Header from "./components/Header";
+import InlineScript from "./components/InlineScript";
+import { introScript } from "./lib/intro";
 import { brand } from "./lib/site";
 import "./globals.css";
 
@@ -37,7 +39,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en-IN" className={`${display.variable} ${sans.variable}`}>
+    <html lang="en-IN" className={`${display.variable} ${sans.variable}`} suppressHydrationWarning>
+      <head>
+        <InlineScript html={introScript} />
+      </head>
       <body>
         <BagProvider>
           <a className="skip" href="#main">
